@@ -12,6 +12,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
 
+/**
+ * 执行登录过程 可以跟数据库 关联
+ */
 public class SpringSecurityUtil {
 
     /**
@@ -22,6 +25,7 @@ public class SpringSecurityUtil {
      * @param authorities 权限
      */
     public static void login(String username, String password, List<String> authorities) {
+        // 可以查下库，验证账号密码是否正确，再执行下面的代码
         HttpServletRequest request = ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();
         List<GrantedAuthority> authoritiesList = AuthorityUtils.createAuthorityList(authorities.toArray(new String[]{}));
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password, authoritiesList);
