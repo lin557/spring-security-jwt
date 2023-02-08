@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.0.2</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.lin</groupId>
+    <artifactId>springboot3-security-jwt</artifactId>
+    <version>2023.2.2</version>
+    <name>track-web-service</name>
+    <description>New track project</description>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
+        <!-- [WARNING] 'mainClass' configured in 'maven-jar-plugin' is not a valid Java class: ${start-class} -->
+        <start-class>com.lin.WebServiceApplication</start-class>
+        <!--properties节点中设置docker镜像的前缀“springboot”-->
+        <docker.image.prefix>transcodegroup</docker.image.prefix>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.auth0/java-jwt -->
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>4.2.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- 打包 -->
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 不打包application.properties -->
+                <!--
+                <excludes>
+                    <exclude>application.properties</exclude>
+                </excludes>
+                 -->
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- main 入口
+                    <mainClass>${start-class}</mainClass>
+                     -->
+                    <layout>ZIP</layout>
+                    <!-- 需要包含的jar包 -->
+                    <includes>
+                        <!-- 不包含任何jar包 -->
+                        <include>
+                            <groupId>nothing</groupId>-->
+                            <artifactId>nothing</artifactId>
+                        </include>
+                    </includes>
+                </configuration>
+                <!-- 读pom.xml中的版本号用 -->
+                <executions>
+                    <execution>
+                        <id>build-info</id>
+                        <goals>
+                            <goal>build-info</goal>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- third-party jar into lib directory -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <!-- 需要排除的jar的 groupId -->
+                            <!-- <excludeGroupIds>com.bdfint.logistics</excludeGroupIds>-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- docker -->
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <!-- 配置基本镜像，这里可以修改为自己的镜像，或精简或修改，但是一定要在私有库中有 -->
+                    <from>
+                        <image>openjdk:17-slim</image>
+                    </from>
+                    <!--配置最终推送的地址，仓库名，镜像名-->
+                    <to>
+                        <!--配置私有仓库地址-->
+                        <image>${docker.image.prefix}/${project.artifactId}</image>
+                        <tags>
+                            <!--tag即镜像的版本，一般是覆盖latest并且新增一个当前版本号-->
+                            <tag>latest</tag>
+                            <tag>${project.version}</tag>
+                        </tags>
+                        <!--
+                        <auth>
+                            <username>xx</username>
+                            <password>xx</password>
+                        </auth>
+                         -->
+                    </to>
+                    <allowInsecureRegistries>true</allowInsecureRegistries>
+                    <container>
+                        <!--jvm内存参数,jvm启动时的所有参数都可以在这里增加-->
+                        <jvmFlags>
+                            <jvmFlag>-Dfile.encoding=UTF8</jvmFlag>
+                        </jvmFlags>
+                        <!--要暴露的端口-->
+                        <ports>
+                            <!-- WEB -->
+                            <port>8089</port>
+                        </ports>
+                        <!--修改镜像默认时间，否则会导致镜像内时区问题-->
+                        <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+                    </container>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
